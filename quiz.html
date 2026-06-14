@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Game | Shubh Palsetkar</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f4f7fb;
+      color: #1f2937;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: white;
+      padding: 20px 10%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h2 { font-size: 20px; }
+    header a {
+      font-size: 13px;
+      color: #dbeafe;
+      text-decoration: none;
+    }
+    header a:hover { color: white; }
+
+    .hero {
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: white;
+      padding: 40px 10% 80px;
+      text-align: center;
+    }
+    .hero h1 { font-size: 36px; margin-bottom: 10px; }
+    .hero p { font-size: 16px; color: #dbeafe; }
+
+    main {
+      width: 80%;
+      max-width: 720px;
+      margin: -50px auto 60px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 32px;
+      margin-bottom: 20px;
+    }
+
+    /* MODE SELECT */
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .mode-card {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .mode-card:hover { background: #f8fafc; border-color: #94a3b8; }
+    .mode-card.sel-aws { border-color: #1e3a8a; background: #eff6ff; }
+    .mode-card.sel-math { border-color: #166534; background: #f0fdf4; }
+    .mode-icon { font-size: 30px; margin-bottom: 8px; }
+    .mode-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+    .mode-sub { font-size: 13px; color: #64748b; }
+
+    .section-title { font-size: 13px; color: #64748b; margin-bottom: 10px; text-align: center; }
+
+    .cat-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .cat-btn {
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 99px;
+      border: 1px solid #cbd5e1;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .cat-btn.act-aws { background: #1e3a8a; color: white; border-color: #1e3a8a; }
+    .cat-btn.act-math { background: #166534; color: white; border-color: #166534; }
+
+    .start-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .start-btn:hover { opacity: 0.9; }
+    .start-btn.aws { background: #1e3a8a; }
+    .start-btn.math { background: #166534; }
+
+    /* QUIZ SCREEN */
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: #64748b;
+    }
+    .timer { font-weight: bold; font-size: 14px; color: #64748b; }
+    .timer.warn { color: #b45309; }
+    .timer.danger { color: #b91c1c; }
+
+    .prog-bar {
+      background: #e2e8f0;
+      border-radius: 99px;
+      height: 6px;
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+    .prog-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat-label { font-size: 11px; color: #64748b; margin-bottom: 3px; }
+    .stat-val { font-size: 20px; font-weight: bold; color: #1f2937; }
+
+    .q-meta { display: flex; gap: 8px; margin-bottom: 12px; }
+    .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .badge-aws { background: #dbeafe; color: #1e3a8a; }
+    .badge-math { background: #dcfce7; color: #166534; }
+    .badge-easy { background: #dcfce7; color: #166534; }
+    .badge-medium { background: #fef3c7; color: #92400e; }
+    .badge-hard { background: #fee2e2; color: #991b1b; }
+
+    .q-text {
+      font-size: 17px;
+      font-weight: bold;
+      color: #0f172a;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .options { display: grid; gap: 10px; }
+    .opt-btn {
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 14px;
+      color: #1f2937;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .opt-btn:hover:not(:disabled) { background: #f8fafc; border-color: #94a3b8; }
+    .opt-btn:disabled { cursor: default; }
+    .opt-btn.correct { background: #dcfce7; border-color: #16a34a; color: #14532d; }
+    .opt-btn.wrong { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
+    .opt-letter {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1.5px solid #cbd5e1;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .explanation {
+      background: #f8fafc;
+      border-left: 3px solid #1e3a8a;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.6;
+      margin-top: 14px;
+      display: none;
+    }
+    .explanation.math { border-left-color: #166534; }
+
+    .nav-row { display: flex; justify-content: flex-end; margin-top: 14px; }
+    .next-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    .next-btn.aws { background: #1e3a8a; }
+    .next-btn.aws:hover { background: #1e40af; }
+    .next-btn.math { background: #166534; }
+    .next-btn.math:hover { background: #15803d; }
+
+    /* END SCREEN */
+    .end-center { text-align: center; }
+    .end-grade { font-size: 56px; font-weight: bold; margin: 12px 0; }
+    .end-sub { font-size: 15px; color: #64748b; margin-bottom: 20px; }
+    .end-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      max-width: 400px;
+      margin: 0 auto 20px;
+    }
+    .restart-btn {
+      padding: 12px 32px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+    }
+    .restart-btn.aws { background: #1e3a8a; }
+    .restart-btn.math { background: #166534; }
+    .study-link {
+      display: block;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #64748b;
+      text-decoration: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 22px;
+      background: #0f172a;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    @media (max-width: 640px) {
+      main { width: 92%; }
+      .mode-grid { grid-template-columns: 1fr; }
+      .stats-row, .end-stats { grid-template-columns: repeat(2, 1fr); }
+      .hero h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>Shubh Palsetkar</h2>
+  <a href="index.html">&larr; Back to portfolio</a>
+</header>
+
+<div class="hero">
+  <h1>Quiz game</h1>
+  <p>AWS Solutions Architect &amp; Maths — timed, scored, explained</p>
+</div>
+
+<main>
+
+  <!-- START SCREEN -->
+  <div class="card" id="start-screen">
+    <div style="text-align:center;margin-bottom:6px;font-size:18px;font-weight:bold;">Choose your quiz</div>
+    <div style="text-align:center;font-size:13px;color:#64748b;margin-bottom:4px;">25 questions &middot; 30 seconds per question &middot; scored</div>
+
+    <div class="mode-grid">
+      <div class="mode-card sel-aws" data-mode="aws" onclick="selectMode('aws')">
+        <div class="mode-icon">&#9729;&#65039;</div>
+        <div class="mode-title">AWS quiz</div>
+        <div class="mode-sub">Solutions Architect level — services, security, architecture</div>
+      </div>
+      <div class="mode-card" data-mode="math" onclick="selectMode('math')">
+        <div class="mode-icon">&#10005;</div>
+        <div class="mode-title">Maths quiz</div>
+        <div class="mode-sub">Arithmetic, algebra, percentages, geometry — all levels</div>
+      </div>
+    </div>
+
+    <div class="section-title">Filter by topic</div>
+    <div class="cat-filter" id="cat-filter"></div>
+
+    <button class="start-btn aws" id="start-btn" onclick="startQuiz()">Start quiz &rarr;</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" style="display:none;">
+    <div class="quiz-header">
+      <span>Question <span id="q-num">1</span> of <span id="q-total">25</span></span>
+      <span class="timer" id="timer">30s</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%;background:#1e3a8a;"></div></div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="stat-label">Score</div><div class="stat-val" id="score">0</div></div>
+      <div class="stat"><div class="stat-label">Correct</div><div class="stat-val" id="correct-count" style="color:#16a34a;">0</div></div>
+      <div class="stat"><div class="stat-label">Wrong</div><div class="stat-val" id="wrong-count" style="color:#dc2626;">0</div></div>
+      <div class="stat"><div class="stat-label">Streak</div><div class="stat-val" id="streak">0 &#128293;</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:0;">
+      <div class="q-meta">
+        <span class="badge badge-aws" id="q-topic">S3</span>
+        <span class="badge badge-medium" id="q-diff">Medium</span>
+      </div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="explanation" id="explanation"></div>
+    </div>
+    <div class="nav-row">
+      <button class="next-btn aws" id="next-btn" onclick="nextQuestion()">Next question &rarr;</button>
+    </div>
+  </div>
+
+  <!-- END SCREEN -->
+  <div class="card end-center" id="end-screen" style="display:none;">
+    <div style="font-size:20px;font-weight:bold;" id="end-title">Quiz complete!</div>
+    <div class="end-grade" id="end-grade">A</div>
+    <div class="end-sub" id="end-sub"></div>
+    <div class="end-stats">
+      <div class="stat"><div class="stat-label">Final score</div><div class="stat-val" id="final-score">0</div></div>
+      <div class="stat"><div class="stat-label">Accuracy</div><div class="stat-val" id="final-acc">0%</div></div>
+      <div class="stat"><div class="stat-label">Best streak</div><div class="stat-val" id="final-streak">0</div></div>
+      <div class="stat"><div class="stat-label">Avg time</div><div class="stat-val" id="final-time">0s</div></div>
+    </div>
+    <button class="restart-btn aws" id="restart-btn" onclick="backToStart()">Play again &#8635;</button>
+  </div>
+
+</main>
+
+<footer>&copy; 2026 Shubh Palsetkar | AWS Cloud Portfolio</footer>
+
+<script>
+const AWS_Q = [
+  {topic:"S3",diff:"Easy",q:"What does Amazon S3 stand for?",opts:["Simple Storage Service","Scalable Server Storage","Secure Storage System","Static Site Server"],ans:0,exp:"S3 = Simple Storage Service. It's object storage for files, images, backups, and static websites."},
+  {topic:"S3",diff:"Medium",q:"Which S3 feature restricts direct public access while letting CloudFront serve files privately?",opts:["Bucket ACL","Origin Access Control (OAC)","S3 Transfer Acceleration","Requester Pays"],ans:1,exp:"OAC lets CloudFront privately access a private S3 bucket using signed requests — replacing the older OAI method."},
+  {topic:"S3",diff:"Medium",q:"Which S3 storage class is cheapest for data accessed less than once per year?",opts:["S3 Standard","S3 Intelligent-Tiering","S3 Glacier Deep Archive","S3 One Zone-IA"],ans:2,exp:"S3 Glacier Deep Archive is the lowest-cost tier, designed for long-term archival with retrieval times of 12–48 hours."},
+  {topic:"CloudFront",diff:"Easy",q:"What is Amazon CloudFront primarily used for?",opts:["Relational database hosting","Content Delivery Network (CDN)","Serverless compute","DNS management"],ans:1,exp:"CloudFront is AWS's CDN — it caches and delivers content from edge locations worldwide, reducing latency."},
+  {topic:"CloudFront",diff:"Medium",q:"What does 'redirect-to-https' in CloudFront viewer protocol policy do?",opts:["Blocks all HTTP traffic","Converts HTTP requests to HTTPS automatically","Requires SSL certificates","Enables HTTP/2 only"],ans:1,exp:"Redirect-to-HTTPS forces all HTTP requests to redirect to HTTPS, ensuring encrypted connections."},
+  {topic:"Lambda",diff:"Easy",q:"What type of compute model does AWS Lambda use?",opts:["Virtual machines","Containers","Serverless functions","Bare metal"],ans:2,exp:"Lambda is serverless — you write code, AWS runs it on demand. You only pay when your function executes."},
+  {topic:"Lambda",diff:"Medium",q:"What is the maximum execution timeout for a single Lambda invocation?",opts:["5 minutes","15 minutes","30 minutes","1 hour"],ans:1,exp:"Lambda functions can run for a maximum of 15 minutes per invocation. For longer tasks, use Step Functions or ECS."},
+  {topic:"API Gateway",diff:"Easy",q:"What does API Gateway do in a serverless architecture?",opts:["Stores API responses","Acts as the front door to trigger Lambda","Manages DNS routing","Monitors API performance"],ans:1,exp:"API Gateway receives HTTP requests and routes them to backend services like Lambda, handling auth and rate limiting."},
+  {topic:"API Gateway",diff:"Medium",q:"Which API Gateway type is best for real-time two-way communication like chat apps?",opts:["REST API","HTTP API","WebSocket API","GraphQL API"],ans:2,exp:"WebSocket APIs maintain persistent connections, enabling real-time bidirectional communication."},
+  {topic:"DynamoDB",diff:"Easy",q:"What type of database is Amazon DynamoDB?",opts:["Relational (SQL)","Graph database","NoSQL key-value and document","Time-series"],ans:2,exp:"DynamoDB is a fully managed NoSQL database offering key-value and document storage with millisecond performance."},
+  {topic:"DynamoDB",diff:"Medium",q:"What billing mode in DynamoDB charges only for actual read/write requests?",opts:["Provisioned throughput","On-demand capacity","Reserved capacity","Burst capacity"],ans:1,exp:"On-demand mode charges per request with no capacity planning — perfect for unpredictable workloads."},
+  {topic:"IAM",diff:"Easy",q:"What does IAM stand for in AWS?",opts:["Internet Access Management","Identity and Access Management","Infrastructure Automation Module","Integrated API Manager"],ans:1,exp:"IAM = Identity and Access Management. It controls who can do what on which AWS resources."},
+  {topic:"IAM",diff:"Medium",q:"What principle states you should grant only the minimum permissions required?",opts:["Separation of duties","Principle of least privilege","Zero trust","Role-based access"],ans:1,exp:"Least privilege means giving the minimum permissions needed — a core AWS security best practice."},
+  {topic:"Security",diff:"Medium",q:"Which AWS service records every API call in your account for auditing?",opts:["CloudWatch","CloudTrail","AWS Config","GuardDuty"],ans:1,exp:"CloudTrail logs every API call — who did what, when, and from where. Essential for security auditing."},
+  {topic:"Security",diff:"Medium",q:"What does a Security Group in AWS act as?",opts:["A firewall for EC2 instances","A DNS resolver","An encryption key manager","A load balancer rule"],ans:0,exp:"Security Groups are virtual firewalls controlling inbound and outbound traffic at the instance level."},
+  {topic:"Monitoring",diff:"Easy",q:"Which AWS service provides metrics, dashboards, and alarms for your resources?",opts:["CloudTrail","CloudWatch","AWS Config","X-Ray"],ans:1,exp:"CloudWatch collects metrics, lets you set alarms, create dashboards, and store logs from Lambda and API Gateway."},
+  {topic:"Monitoring",diff:"Medium",q:"Which AWS service detects threats using ML by analysing VPC flow logs?",opts:["CloudWatch","Shield","GuardDuty","Macie"],ans:2,exp:"GuardDuty uses ML to continuously analyse data sources and detect unusual behaviour and potential compromises."},
+  {topic:"Networking",diff:"Easy",q:"What does a VPC (Virtual Private Cloud) provide in AWS?",opts:["A content delivery network","An isolated virtual network for your resources","A managed database cluster","A serverless runtime"],ans:1,exp:"A VPC is your own isolated section of the AWS cloud — you define IP ranges, subnets, route tables and gateways."},
+  {topic:"Networking",diff:"Medium",q:"What is the key difference between a public and private subnet in a VPC?",opts:["Public subnets are faster","Public subnets route to an Internet Gateway; private subnets do not","Private subnets cost more","Public subnets use IPv6 only"],ans:1,exp:"A public subnet has a route to an Internet Gateway allowing internet access. Private subnets have no such route."},
+  {topic:"Networking",diff:"Medium",q:"Which AWS service handles DNS — translating domain names to IP addresses?",opts:["CloudFront","Route 53","API Gateway","VPC Resolver"],ans:1,exp:"Route 53 is AWS's scalable DNS service. It routes users to your endpoints and supports health checks."},
+  {topic:"Compute",diff:"Easy",q:"What does EC2 stand for?",opts:["Elastic Container Cloud","Elastic Compute Cloud","Enterprise Cloud Computing","Extended Compute Capacity"],ans:1,exp:"EC2 = Elastic Compute Cloud. It provides resizable virtual machine instances — the core compute service in AWS."},
+  {topic:"Compute",diff:"Medium",q:"Which EC2 pricing model offers up to 90% discount by using spare AWS capacity?",opts:["On-Demand","Reserved Instances","Spot Instances","Dedicated Hosts"],ans:2,exp:"Spot Instances use spare EC2 capacity at up to 90% off but can be interrupted. Best for fault-tolerant batch jobs."},
+  {topic:"DynamoDB",diff:"Hard",q:"What is a DynamoDB Global Secondary Index (GSI) used for?",opts:["Replicating data across regions","Querying on non-primary key attributes","Encrypting data at rest","Caching frequent queries"],ans:1,exp:"A GSI lets you query DynamoDB using attributes other than the primary key, giving flexible access patterns."},
+  {topic:"Lambda",diff:"Hard",q:"Which Lambda feature lets code run alongside your function for monitoring?",opts:["Lambda Layers","Init phase","Lambda Extensions","Lambda@Edge"],ans:2,exp:"Lambda Extensions run alongside your function and hook into lifecycle phases for monitoring and security tools."},
+  {topic:"Security",diff:"Hard",q:"In the S3 + CloudFront architecture, which bucket policy condition restricts access to only your distribution?",opts:["s3:PrincipalOrgID","AWS:SourceArn matching the distribution ARN","aws:SecureTransport","cloudfront:ViewerProtocol"],ans:1,exp:"The bucket policy uses AWS:SourceArn matching the specific CloudFront distribution ARN, preventing other distributions from accessing your bucket."}
+];
+
+const MATH_Q = [
+  {topic:"Arithmetic",diff:"Easy",q:"What is 15% of 200?",opts:["25","30","35","40"],ans:1,exp:"15% of 200 = 200 × 0.15 = 30. To find a percentage, multiply by the decimal form (15 ÷ 100 = 0.15)."},
+  {topic:"Arithmetic",diff:"Easy",q:"What is 144 ÷ 12?",opts:["11","12","13","14"],ans:1,exp:"144 ÷ 12 = 12. You can verify: 12 × 12 = 144."},
+  {topic:"Arithmetic",diff:"Easy",q:"What is 7 × 8?",opts:["54","56","58","64"],ans:1,exp:"7 × 8 = 56. Useful trick: 7 × 8 = 7 × (7+1) = 49 + 7 = 56."},
+  {topic:"Arithmetic",diff:"Medium",q:"What is 3/4 expressed as a percentage?",opts:["65%","70%","75%","80%"],ans:2,exp:"3 ÷ 4 = 0.75 = 75%. To convert a fraction to a percentage, divide numerator by denominator and multiply by 100."},
+  {topic:"Arithmetic",diff:"Medium",q:"A shirt costs £40 and is discounted by 25%. What is the sale price?",opts:["£25","£28","£30","£32"],ans:2,exp:"25% of £40 = £10 discount. £40 − £10 = £30. Calculate the discount amount first, then subtract."},
+  {topic:"Algebra",diff:"Easy",q:"If x + 5 = 12, what is x?",opts:["5","6","7","8"],ans:2,exp:"x + 5 = 12 → x = 12 − 5 = 7. Isolate x by doing the inverse operation on both sides."},
+  {topic:"Algebra",diff:"Medium",q:"Solve for x: 3x − 4 = 11",opts:["4","5","6","7"],ans:1,exp:"3x − 4 = 11 → 3x = 15 → x = 5. Add 4 to both sides first, then divide both sides by 3."},
+  {topic:"Algebra",diff:"Medium",q:"What is the value of 2x² when x = 3?",opts:["12","18","36","54"],ans:1,exp:"2x² = 2 × (3²) = 2 × 9 = 18. Exponent comes before multiplication — square x first, then multiply by 2."},
+  {topic:"Algebra",diff:"Hard",q:"Solve for x: 2x + 3 = x − 1",opts:["x = −4","x = −2","x = 2","x = 4"],ans:0,exp:"2x + 3 = x − 1 → 2x − x = −1 − 3 → x = −4. Move all x terms to one side and constants to the other."},
+  {topic:"Algebra",diff:"Hard",q:"If f(x) = x² + 2x + 1, what is f(3)?",opts:["12","14","16","18"],ans:2,exp:"f(3) = 3² + 2(3) + 1 = 9 + 6 + 1 = 16. Substitute x = 3 and follow order of operations."},
+  {topic:"Percentages",diff:"Easy",q:"What percentage of 50 is 10?",opts:["15%","20%","25%","30%"],ans:1,exp:"(10 ÷ 50) × 100 = 20%. To find what percentage A is of B: (A ÷ B) × 100."},
+  {topic:"Percentages",diff:"Medium",q:"A price increases from £80 to £100. What is the percentage increase?",opts:["20%","25%","30%","35%"],ans:1,exp:"Increase = £20. % increase = (20 ÷ 80) × 100 = 25%. Always divide the change by the original value."},
+  {topic:"Percentages",diff:"Medium",q:"After a 20% increase, a salary is £36,000. What was the original salary?",opts:["£28,000","£29,000","£30,000","£31,000"],ans:2,exp:"£36,000 = 120% of original, so original = £36,000 ÷ 1.2 = £30,000. Divide by (1 + increase rate)."},
+  {topic:"Geometry",diff:"Easy",q:"What is the area of a rectangle with width 5cm and height 8cm?",opts:["30 cm²","35 cm²","40 cm²","45 cm²"],ans:2,exp:"Area of rectangle = width × height = 5 × 8 = 40 cm²."},
+  {topic:"Geometry",diff:"Medium",q:"What is the circumference of a circle with radius 7cm? (π ≈ 3.14)",opts:["43.96 cm","44.96 cm","45.96 cm","46.96 cm"],ans:0,exp:"Circumference = 2πr = 2 × 3.14 × 7 = 43.96 cm."},
+  {topic:"Geometry",diff:"Medium",q:"A right-angled triangle has legs of 3cm and 4cm. What is the hypotenuse?",opts:["4 cm","5 cm","6 cm","7 cm"],ans:1,exp:"Pythagoras: c² = a² + b² = 9 + 16 = 25, so c = 5 cm. The 3-4-5 triple is the most famous Pythagorean triple."},
+  {topic:"Geometry",diff:"Hard",q:"What is the volume of a cylinder with radius 3cm and height 10cm? (π ≈ 3.14)",opts:["251.2 cm³","271.2 cm³","282.6 cm³","301.6 cm³"],ans:2,exp:"Volume = πr²h = 3.14 × 9 × 10 = 282.6 cm³."},
+  {topic:"Statistics",diff:"Easy",q:"What is the mean (average) of 4, 8, 12, 16?",opts:["8","10","11","12"],ans:1,exp:"Mean = (4 + 8 + 12 + 16) ÷ 4 = 40 ÷ 4 = 10."},
+  {topic:"Statistics",diff:"Medium",q:"What is the median of: 3, 7, 9, 2, 5?",opts:["5","6","7","9"],ans:0,exp:"Sort first: 2, 3, 5, 7, 9. The median is the middle value = 5."},
+  {topic:"Statistics",diff:"Medium",q:"A die is rolled once. What is the probability of rolling an even number?",opts:["1/3","1/2","2/3","3/4"],ans:1,exp:"Even numbers on a die: 2, 4, 6 — that's 3 out of 6 outcomes. P = 3/6 = 1/2."},
+  {topic:"Fractions",diff:"Easy",q:"What is 1/2 + 1/4?",opts:["2/6","3/4","2/4","1/3"],ans:1,exp:"Convert to common denominator: 2/4 + 1/4 = 3/4. Always find the lowest common denominator first."},
+  {topic:"Fractions",diff:"Medium",q:"What is 2/3 × 3/4?",opts:["5/7","6/12","1/2","2/7"],ans:2,exp:"Multiply numerators and denominators: (2×3)/(3×4) = 6/12 = 1/2. Simplify by dividing both by 6."},
+  {topic:"Fractions",diff:"Medium",q:"What is 3/4 ÷ 1/2?",opts:["3/8","3/2","6/4","2/3"],ans:1,exp:"Dividing by a fraction = multiplying by its reciprocal: 3/4 × 2/1 = 6/4 = 3/2. Flip the second fraction and multiply."},
+  {topic:"Statistics",diff:"Hard",q:"In a class of 30, 18 are girls. What is the ratio of boys to girls in simplest form?",opts:["12:18","2:3","3:2","1:2"],ans:1,exp:"Boys = 30 − 18 = 12. Ratio = 12:18. Simplify by dividing both by 6: 2:3."},
+  {topic:"Algebra",diff:"Hard",q:"A train travels 180km in 2.5 hours. What is its average speed in km/h?",opts:["62 km/h","68 km/h","72 km/h","78 km/h"],ans:2,exp:"Speed = Distance ÷ Time = 180 ÷ 2.5 = 72 km/h."}
+];
+
+const AWS_CATS = ['All topics','S3','CloudFront','Lambda','API Gateway','DynamoDB','IAM','Security','Monitoring','Networking','Compute'];
+const MATH_CATS = ['All topics','Arithmetic','Algebra','Percentages','Geometry','Statistics','Fractions'];
+
+let mode='aws', selectedCat='All topics';
+let questions=[], current=0, score=0, correct=0, wrong=0, streak=0, bestStreak=0;
+let answered=false, timerInterval, timeLeft=30, totalTime=0;
+
+function selectMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-card').forEach(c => c.className = 'mode-card');
+  document.querySelector(`[data-mode="${m}"]`).classList.add(`sel-${m}`);
+  document.getElementById('start-btn').className = `start-btn ${m}`;
+  selectedCat = 'All topics';
+  buildCats();
+}
+
+function buildCats() {
+  const cats = mode === 'aws' ? AWS_CATS : MATH_CATS;
+  const cf = document.getElementById('cat-filter');
+  cf.innerHTML = '';
+  cats.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat-btn' + (c === selectedCat ? ` act-${mode}` : '');
+    b.textContent = c;
+    b.onclick = () => {
+      selectedCat = c;
+      document.querySelectorAll('.cat-btn').forEach(x => x.className = 'cat-btn');
+      b.className = `cat-btn act-${mode}`;
+    };
+    cf.appendChild(b);
+  });
+}
+
+function startQuiz() {
+  const pool = mode === 'aws' ? AWS_Q : MATH_Q;
+  let filtered = selectedCat === 'All topics' ? [...pool] : pool.filter(q => q.topic === selectedCat);
+  if (filtered.length < 5) filtered = [...pool];
+  questions = filtered.sort(() => Math.random() - 0.5).slice(0, Math.min(25, filtered.length));
+  current=0; score=0; correct=0; wrong=0; streak=0; bestStreak=0; totalTime=0;
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = '';
+  document.getElementById('q-total').textContent = questions.length;
+  document.getElementById('prog-fill').style.background = mode === 'aws' ? '#1e3a8a' : '#166534';
+  document.getElementById('next-btn').className = `next-btn ${mode}`;
+  showQuestion();
+}
+
+function showQuestion() {
+  answered = false;
+  const q = questions[current];
+  document.getElementById('q-num').textContent = current + 1;
+  document.getElementById('prog-fill').style.width = Math.round(current / questions.length * 100) + '%';
+  document.getElementById('q-text').textContent = q.q;
+  const topicEl = document.getElementById('q-topic');
+  topicEl.textContent = q.topic;
+  topicEl.className = `badge badge-${mode}`;
+  const diffEl = document.getElementById('q-diff');
+  diffEl.textContent = q.diff;
+  diffEl.className = `badge badge-${q.diff.toLowerCase()}`;
+  const exp = document.getElementById('explanation');
+  exp.style.display = 'none';
+  exp.className = `explanation${mode === 'math' ? ' math' : ''}`;
+  document.getElementById('next-btn').style.display = 'none';
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  ['A','B','C','D'].forEach((letter, i) => {
+    if (i >= q.opts.length) return;
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-letter">${letter}</span>${q.opts[i]}`;
+    btn.onclick = () => selectAnswer(i);
+    opts.appendChild(btn);
+  });
+  updateStats();
+  startTimer();
+}
+
+function startTimer() {
+  timeLeft = 30;
+  clearInterval(timerInterval);
+  const tel = document.getElementById('timer');
+  tel.className = 'timer';
+  tel.textContent = '30s';
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    tel.textContent = timeLeft + 's';
+    tel.className = 'timer' + (timeLeft <= 5 ? ' danger' : timeLeft <= 10 ? ' warn' : '');
+    if (timeLeft <= 0) { clearInterval(timerInterval); if (!answered) timeUp(); }
+  }, 1000);
+}
+
+function timeUp() {
+  answered = true; totalTime += 30; wrong++; streak = 0;
+  const q = questions[current];
+  const btns = document.getElementById('options').querySelectorAll('.opt-btn');
+  btns[q.ans].classList.add('correct');
+  btns.forEach(b => b.disabled = true);
+  const exp = document.getElementById('explanation');
+  exp.textContent = "Time's up! " + q.exp;
+  exp.style.display = 'block';
+  document.getElementById('next-btn').style.display = 'block';
+  updateStats();
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+  const elapsed = 30 - timeLeft;
+  totalTime += elapsed;
+  const q = questions[current];
+  const btns = document.getElementById('options').querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  if (idx === q.ans) {
+    btns[idx].classList.add('correct');
+    score += Math.max(10, 30 - elapsed) + (streak >= 3 ? 5 : 0);
+    correct++; streak++;
+    if (streak > bestStreak) bestStreak = streak;
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.ans].classList.add('correct');
+    wrong++; streak = 0;
+  }
+  document.getElementById('explanation').textContent = q.exp;
+  document.getElementById('explanation').style.display = 'block';
+  document.getElementById('next-btn').style.display = 'block';
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('correct-count').textContent = correct;
+  document.getElementById('wrong-count').textContent = wrong;
+  document.getElementById('streak').textContent = streak + ' 🔥';
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= questions.length) { endQuiz(); return; }
+  showQuestion();
+}
+
+function endQuiz() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('end-screen').style.display = '';
+  const acc = Math.round(correct / questions.length * 100);
+  const grade = acc >= 90 ? 'A+' : acc >= 80 ? 'A' : acc >= 70 ? 'B' : acc >= 60 ? 'C' : 'D';
+  document.getElementById('end-title').textContent = acc >= 80 ? 'Excellent work!' : acc >= 60 ? 'Good effort!' : 'Keep practising!';
+  const eg = document.getElementById('end-grade');
+  eg.textContent = grade;
+  eg.style.color = acc >= 80 ? '#16a34a' : acc >= 60 ? '#b45309' : '#dc2626';
+  document.getElementById('end-sub').textContent = `You got ${correct} out of ${questions.length} correct`;
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('final-acc').textContent = acc + '%';
+  document.getElementById('final-streak').textContent = bestStreak;
+  document.getElementById('final-time').textContent = Math.round(totalTime / questions.length) + 's';
+  document.getElementById('restart-btn').className = `restart-btn ${mode}`;
+}
+
+function backToStart() {
+  document.getElementById('end-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = '';
+}
+
+buildCats();
+</script>
+</body>
+</html>
